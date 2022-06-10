@@ -5,7 +5,9 @@ type queBuilder struct {
 }
 
 func New() *queBuilder {
-	return &queBuilder{}
+	return &queBuilder{
+		items: make(map[string]RequestHandler, 0),
+	}
 }
 
 func (q *queBuilder) Define(request Request, requestHandler RequestHandler) *queBuilder {
