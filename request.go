@@ -6,10 +6,9 @@ type Request interface {
 	GetSignature() string
 }
 
-type Response struct{}
+type Response interface{}
 
-type RequestResponse struct{}
-
-type RequestHandler interface {
-	Handle(ctx context.Context, item any) (*Response, error)
+type RequestHandlerContract[TRequest Request] interface {
+	Handle(ctx context.Context, item TRequest) error
+	Request
 }

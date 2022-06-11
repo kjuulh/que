@@ -8,30 +8,34 @@ import (
 )
 
 type TestRequest struct {
+	SomeField string
 }
 
 func (t TestRequest) GetSignature() string {
 	return "test_item"
 }
 
-var _ que.Request = TestRequest{}
+var _ que.Request = &TestRequest{}
 
-type TestItemRequestHandler struct{}
+type TestItemRequestHandler[TRequest que.Request] struct{}
 
-func (t TestItemRequestHandler) Handle(ctx context.Context, item any) (*que.Response, error) {
-	return &que.Response{}, nil
+func (t TestItemRequestHandler[TRequest]) Handle(ctx context.Context, item TRequest) error {
+	return nil
 }
 
-var _ que.RequestHandler = TestItemRequestHandler{}
+func NewTestRequestHandler() *TestItemRequestHandler[TestRequest] {
+	return &TestItemRequestHandler[TestRequest]{}
+}
+
+func (t TestItemRequestHandler[TRequest]) GetSignature() string {
+	return "test_item"
+}
 
 func TestLib(t *testing.T) {
-	q := que.
-		New().
-		Define(TestRequest{}, TestItemRequestHandler{}).
-		Build()
+	q := que.New()
+	que.Define(q, NewTestRequestHandler())
 
-	res, err := q.Handle(context.Background(), TestRequest{})
+	err := que.Send(q, context.Background(), TestRequest{})
 
 	require.NoError(t, err)
-	require.NotNil(t, res)
 }

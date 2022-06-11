@@ -5,17 +5,18 @@ import (
 	"fmt"
 )
 
-type que struct {
-	*queBuilder
-}
-
-func (q *que) Handle(ctx context.Context, request Request) (*Response, error) {
-	requestHandler, ok := q.items[request.GetSignature()]
+func Send[TRequest Request](queBuilder *queBuilder, ctx context.Context, request TRequest) error {
+	requestHandler, ok := queBuilder.items[request.GetSignature()]
 	if !ok {
-		return nil, fmt.Errorf("could not find request handler")
+		return fmt.Errorf("could not find request handler with signature: %s", request.GetSignature())
 	}
 
-	return requestHandler.Handle(ctx, request)
+	rh, ok := requestHandler.(func(context.Context, TRequest) error)
+	if !ok {
+		return fmt.Errorf("could not find request handler")
+	}
+
+	return rh(ctx, request)
 }
 
 type Que interface {

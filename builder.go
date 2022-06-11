@@ -1,21 +1,23 @@
 package que
 
 type queBuilder struct {
-	items map[string]RequestHandler
+	items map[string]any
 }
 
 func New() *queBuilder {
 	return &queBuilder{
-		items: make(map[string]RequestHandler, 0),
+		items: make(map[string]any, 0),
 	}
 }
 
-func (q *queBuilder) Define(request Request, requestHandler RequestHandler) *queBuilder {
-	q.items[request.GetSignature()] = requestHandler
+func Define[TRequest Request](queBuilder *queBuilder, requestHandler RequestHandlerContract[TRequest]) *queBuilder {
+	signature := requestHandler.GetSignature()
 
-	return q
+	queBuilder.items[signature] = requestHandler.Handle
+
+	return queBuilder
 }
 
-func (q *queBuilder) Build() Que {
-	return &que{q}
+func (q *queBuilder) Build() *queBuilder {
+	return q
 }
